@@ -126,13 +126,26 @@ public class GLES20Renderer implements Renderer {
 		};
 
 		float[] planeTFA = {
-				// 1,0, 0,0, 1,1, 0,1
-				1,1, 0,1, 1,0, 0,0
+				1,0, 0,0, 1,1, 0,1 // 只是上下倒转过来 没有左右倒 
+				// 1,1, 0,1, 1,0, 0,0  // 跟图片一样正的
+				 					 /*
+				 					  *     <---
+				 					  *      \
+				 					  *       \ 
+				 					  *     <--\/
+				 					  * */
 		};
 
 		short[] planeISA = {
 				2,3,1,
 				0,2,1,
+				/*  两个三角形 相同方向
+				 *     3<--------- 2 
+				 *      |        / ^
+				 *      |     /    |
+				 *      |   /      |
+				 *    1 \/  ------> 0
+				 */
 		};
 
 		ByteBuffer planeVBB = ByteBuffer.allocateDirect(planeVFA.length * 4);
