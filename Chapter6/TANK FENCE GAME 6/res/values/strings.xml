@@ -1,0 +1,14 @@
+<resources>
+
+    <string name="app_name">TANK FENCE GAME 6</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">TANK FENCE GAME</string>
+    <string name="up">UP</string>
+    <string name="down">DOWN</string>
+    <string name="fire">FIRE</string>
+    <string name="defaultscore">75/100</string>
+    <string name="defaultplayer">John Doe</string>
+    <string name="hint">Player</string>
+
+</resources>

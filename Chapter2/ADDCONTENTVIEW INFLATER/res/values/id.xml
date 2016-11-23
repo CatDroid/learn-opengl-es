@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="upDown" type="id"/>
+    <item name="up" type="id"/>
+    <item name="down" type="id"/>
+
+</resources>

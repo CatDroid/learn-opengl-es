@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="app_name">UPDOWN COUNTER</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">SYNCHRONIZED COUNTER</string>
+    <string name="up">UP</string>
+    <string name="down">DOWN</string>
+
+</resources>

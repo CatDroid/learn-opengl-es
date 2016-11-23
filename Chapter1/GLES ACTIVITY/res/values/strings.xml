@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="app_name">GLES ACTIVITY</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="first">First Activity - ES 1.x</string>
+	<string name="tosecond">TO OPENGL ES 2.0</string>
+    <string name="second">Second Activity - ES 2.0</string>
+
+</resources>

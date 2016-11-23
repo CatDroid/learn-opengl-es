@@ -1,0 +1,8 @@
+<resources>
+
+    <string name="app_name">GL RECTANGLE ELEMENTS</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">GL DRAW ELEMENTS</string>
+
+</resources>

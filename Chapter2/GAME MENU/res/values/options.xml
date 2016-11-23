@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="options">
+        <item name="game">New Game</item>
+        <item name="score">High Score</item>
+        <item name="player">Edit Player</item>
+        <item name="sound">Toggle Sound</item>
+        <item name="data">Clear Data</item>
+    </string-array>
+</resources>

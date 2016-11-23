@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="app_name">ADDCONTENTVIEW INFLATER</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">LAYOUT INFLATER</string>
+    <string name="up">Up</string>
+    <string name="down">Down</string>
+
+</resources>

@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="app_name">TANK FENCE GAME 3</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">TANK FENCE GAME</string>
+    <string name="up">UP</string>
+    <string name="down">DOWN</string>
+    <string name="fire">FIRE</string>
+
+</resources>
