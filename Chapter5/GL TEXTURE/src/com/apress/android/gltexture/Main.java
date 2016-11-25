@@ -1,6 +1,7 @@
 package com.apress.android.gltexture;
 
 import android.app.Activity;
+import android.graphics.YuvImage;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -22,6 +23,7 @@ public class Main extends Activity implements OnTouchListener {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		
 		super.onCreate(savedInstanceState);
 		_surfaceView = new GLSurfaceView(this);
 		_surfaceView.setEGLContextClientVersion(2);
