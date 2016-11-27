@@ -85,6 +85,14 @@ public class GLES20Renderer implements Renderer {
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
 		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, img1, 0);
+		
+		
+		// 
+		GLES20.glUseProgram(_planeProgram);
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, _textureId);
+		GLES20.glUniform1i(_planeUSamplerLocation, 0);
+		
 	}
 
 	public void onDrawFrame(GL10 gl) {
@@ -94,14 +102,22 @@ public class GLES20Renderer implements Renderer {
 		Matrix.multiplyMM(_MVPMatrix, 0, _ViewMatrix, 0, _RMatrix, 0);
 		Matrix.multiplyMM(_MVPMatrix, 0, _ProjectionMatrix, 0, _MVPMatrix, 0);
 
-		GLES20.glUseProgram(_planeProgram);
-
-		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, _textureId);
-		GLES20.glUniform1i(_planeUSamplerLocation, 0);
+//		GLES20.glUseProgram(_planeProgram);
+//
+//		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+//		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, _textureId);
+//		GLES20.glUniform1i(_planeUSamplerLocation, 0);
 
 		GLES20.glUniformMatrix4fv(_planeUMVPLocation, 1, false, _MVPMatrix, 0);
-		GLES20.glVertexAttribPointer(_planeAPositionLocation, 3, GLES20.GL_FLOAT, false, 12, _planeVFB);
+		
+		// size 指定每个顶点属性的组件数量。必须为1、2、3或者4。初始值为4。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a））
+		// type 指定数组中每个组件的数据类型  GL_UNSIGNED_BYTE,  GL_FLOAT
+		// normalized 指定当被访问时,固定点数据值是否应该被归一化（GL_TRUE）或者直接转换为固定点值（GL_FALSE）
+		// stride 指定连续顶点属性之间的偏移量。如果为0，那么顶点属性会被理解为：它们是紧密排列在一起的。初始值为0
+		//GLES20.glVertexAttribPointer(_planeAPositionLocation, 3, GLES20.GL_FLOAT, false, 12, _planeVFB);
+		GLES20.glVertexAttribPointer(_planeAPositionLocation,4 , GLES20.GL_FLOAT, false, 4*4, _planeVFB);
+		
+		
 		GLES20.glEnableVertexAttribArray(_planeAPositionLocation);
         GLES20.glVertexAttribPointer(_planeACoordinateLocation, 2, GLES20.GL_FLOAT, false, 8, _planeTFB);
         GLES20.glEnableVertexAttribArray(_planeACoordinateLocation);
@@ -119,10 +135,10 @@ public class GLES20Renderer implements Renderer {
 
 	private void initplane() {
 		float[] planeVFA = {
-				10.000000f,-10.000000f,0.000000f,
-				-10.000000f,-10.000000f,0.000000f,
-				10.000000f,10.000000f,0.000000f,
-				-10.000000f,10.000000f,0.000000f,
+				10.000000f,-10.000000f,0.000000f, 	1.f,
+				-10.000000f,-10.000000f,0.000000f, 	1.f,
+				10.000000f,10.000000f,0.000000f, 	1.f,
+				-10.000000f,10.000000f,0.000000f,	1.f, // 如果最后一个是0的话 没有显示!!
 		};
 //		float[] planeVFA = {
 //			1.000000f,-1.000000f,0.000000f,
@@ -195,13 +211,14 @@ public class GLES20Renderer implements Renderer {
         return program;
     }
 
+	//
 	private final String _planeVertexShaderCode = 
 			"attribute vec4 aPosition;			\n"
 		+	"attribute vec2 aCoord;				\n"
 		+	"varying vec2 vCoord;				\n"
 		+	"uniform mat4 uMVP;					\n"
 		+	"void main() {						\n"
-		+	" gl_Position = uMVP * aPosition;	\n"
+		+	" gl_Position =  uMVP *aPosition;	\n"
 		+	" vCoord = aCoord;					\n"
 		+	"}									\n";
 
