@@ -15,8 +15,12 @@ public class GLES20Renderer implements Renderer {
 	private int _rectangleProgram;
 	private int aPosHandle;
 	private int aColorHandle;
+	private int uNormal ;
 
 	FloatBuffer vertexColorData;
+	
+	private int mHeight ;
+	private int mWidth ; 
 
 	public static final String TAG = "GLES20Renderer";
 
@@ -51,13 +55,31 @@ public class GLES20Renderer implements Renderer {
 		//if( aColorHandle == 0 ){
 		//	Log.e(TAG , "a_Color error ");
 		//}
-		Log.d(TAG, "aPosHandle = " + aPosHandle + " aColorHandle " + aColorHandle);
+		
+		uNormal = GLES20.glGetUniformLocation(_rectangleProgram, "u_normal");
+		checkGlError("glGetUniformLocation a_normal");
+        if (uNormal == -1) {
+            throw new RuntimeException("Could not get uniform u_normal for tex_yuv");
+        }
+		Log.d(TAG, "aPosHandle = " + aPosHandle + " aColorHandle " + aColorHandle + " uNormal " + uNormal);
 	}
 
+
+    
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		gl.glViewport(0, 0, width, height);
+		mHeight = height  ;
+		mWidth =  width;
+		Log.d(TAG , "surface change " + "h " +  mHeight + "w " + mWidth );
 	}
 
+    private void checkGlError(String op) {
+        int error;
+        while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+            throw new RuntimeException(op + ": glError " + error);
+        }
+    }
+    
 	public static boolean validateProgram(int programObjectId) {
 		GLES20.glValidateProgram(programObjectId);
 		final int[] validateStatus = new int[1];
@@ -88,6 +110,10 @@ public class GLES20Renderer implements Renderer {
 				GLES20.GL_FLOAT, false, STRIDE, vertexColorData); // 每两个颜色属性值 相差STRIDE个字节 
 		GLES20.glEnableVertexAttribArray(aColorHandle);
 	
+		
+		float normal = (mWidth * 1.0f) / (mHeight*1.0f) ;
+		Log.d(TAG , "h " + mHeight + " w " + mWidth + " n " + normal );
+		GLES20.glUniform1f(uNormal , normal );
 		
 		// GLES20.GL_TRIANGLE_FAN
 		// GLES20.GL_TRIANGLE_FAN
@@ -140,10 +166,11 @@ public class GLES20Renderer implements Renderer {
 
 	private final String _rectangleVertexShaderCode = 
 			"attribute vec4 a_Position;\n"
+			+ "uniform float u_normal;\n"
 			+ "attribute vec4 a_Color;\n"
 			+ "varying vec4 v_Color;\n"
 			+ "void main() {\n"
-			+ "		gl_Position = a_Position;\n"
+			+ "		gl_Position = a_Position * vec4(1,u_normal,1, 1);\n"
 			+ "		gl_PointSize = 20.0; \n"
 			+ "		v_Color = a_Color;\n" // 平滑着色
 			+ "}\n";
