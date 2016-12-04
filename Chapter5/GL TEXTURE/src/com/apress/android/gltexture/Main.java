@@ -5,12 +5,14 @@ import android.graphics.YuvImage;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.RelativeLayout;
 
 public class Main extends Activity implements OnTouchListener {
+	private static final String TAG = "main";
 	private GLSurfaceView _surfaceView;
 	private final float _TOUCH_SENSITIVITY = 0.25f;
 	private final float _ANGLE_SPAN = 90.0f;
@@ -36,6 +38,10 @@ public class Main extends Activity implements OnTouchListener {
 				RelativeLayout.LayoutParams.MATCH_PARENT);
 		addContentView(rl, rllp);
 		getDeviceWidth();
+		
+		//ldpi是120，mdpi是160，hdpi是240，xhdpi是320
+		int dpi = this.getResources().getConfiguration().densityDpi;
+		Log.d(TAG, "dpi " + dpi );
 	}
 
 	@Override

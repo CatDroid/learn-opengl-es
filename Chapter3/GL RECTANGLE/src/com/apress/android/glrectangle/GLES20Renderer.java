@@ -3,6 +3,7 @@ package com.apress.android.glrectangle;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -103,8 +104,8 @@ public class GLES20Renderer implements Renderer {
 	 *
 	 *	
 	 */
-	private final float[] projectionMatrix=new float[16];
-	private int uMatrixLocation; // 正交投影
+	private float[] projectionMatrix =new float[16];
+	private int uMatrixLocation; 
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		gl.glViewport(0, 0, width, height);
 		mHeight = height  ;
@@ -128,14 +129,28 @@ public class GLES20Renderer implements Renderer {
 		float[] temp=new float[16];
 		float[] modelMatrix=new float[16];
 		android.opengl.Matrix.setIdentityM(modelMatrix, 0); // 模型矩阵
-		android.opengl.Matrix.translateM(modelMatrix,0,0f,0.0f,-3f); // Z方向 移远-2.5
-		android.opengl.Matrix.rotateM(modelMatrix,0,-45f,1f,0f,0f);	 // 沿X轴 旋转-60 (右手坐标规则 x轴正方向指向眼睛 逆时针为负度数)
+		android.opengl.Matrix.rotateM(modelMatrix,0,30.0f,1f,0f,0f);	 // 沿X轴 旋转-60 (右手坐标规则 x轴正方向指向眼睛 逆时针为负度数)
 		
-		perspectiveM(projectionMatrix, 45, (float) width / (float) height, 1f, 10f);// 视椎体从Z值为-1的位置开始，在Z值为-10的位置结束。
-		android.opengl.Matrix.multiplyMM(temp,0,projectionMatrix,0,modelMatrix,0);
-		System.arraycopy(temp, 0, projectionMatrix, 0, temp.length);
-		//System.arraycopy(modelMatrix, 0, projectionMatrix, 0, modelMatrix.length);
+		
+		//android.opengl.Matrix.translateM(modelMatrix,0,0f,0.0f,-0.5f); // Z方向 移远-2.5
 
+		//perspectiveM(projectionMatrix, 45, (float) width / (float) height, 1f, 10f);// 视椎体从Z值为-1的位置开始，在Z值为-10的位置结束。
+		//android.opengl.Matrix.multiplyMM(temp,0,projectionMatrix,0,modelMatrix,0);
+		//System.arraycopy(temp, 0, projectionMatrix, 0, temp.length);
+		System.arraycopy(modelMatrix, 0, projectionMatrix, 0, modelMatrix.length);
+		
+		projectionMatrix = new float[]{
+			1 , 0 , 	0 , 	0 ,
+			0 , 0.8f, 	0.5f ,	 	0 ,
+			0 , -0.5f, 		0.8f, 	0 ,
+			0 , 0 , 	0 , 	1 
+		};
+		Log.d(TAG,"projectionMatrix = " + Arrays.toString( projectionMatrix ) );
+		
+		float[] temp2=new float[]{0,0,0,1};
+		float[] temp1=new float[4];
+		android.opengl.Matrix.multiplyMV(temp1, 0, projectionMatrix, 0, temp2, 0);
+		Log.d(TAG, "result = " + Arrays.toString(temp1) );
 	}
 	
 	public static void perspectiveM(float[] m,float yFovInDegress,float aspect,float n,float f){
@@ -185,7 +200,7 @@ public class GLES20Renderer implements Renderer {
 		gl.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
 		boolean validate = validateProgram(_rectangleProgram);
-		Log.d(TAG, "validate = " + validate);
+		//Log.d(TAG, "validate = " + validate);
 		GLES20.glUseProgram(_rectangleProgram);
 
 		vertexColorData.position(0);
@@ -195,7 +210,7 @@ public class GLES20Renderer implements Renderer {
 				false, STRIDE, vertexColorData);
 		GLES20.glEnableVertexAttribArray(aPosHandle);
 
-		vertexColorData.position(POSITION_COMPONENT_COUNT); // 跳过两个位置的 
+		//vertexColorData.position(POSITION_COMPONENT_COUNT); // 跳过两个位置的 
 		//Log.d(TAG , " 2 " + vertexColorData.get() + " STRIDE = " + STRIDE);
 		vertexColorData.position(POSITION_COMPONENT_COUNT);
 		GLES20.glVertexAttribPointer(aColorHandle, COLOR_COMPONENT_COUNT,
@@ -206,7 +221,7 @@ public class GLES20Renderer implements Renderer {
 		GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, projectionMatrix, 0);
 		
 		float normal = (mWidth * 1.0f) / (mHeight*1.0f) ;
-		Log.d(TAG , "h " + mHeight + " w " + mWidth + " n " + normal );
+		//Log.d(TAG , "h " + mHeight + " w " + mWidth + " n " + normal );
 		GLES20.glUniform1f(uNormal , normal );
 		
 		// GLES20.GL_TRIANGLE_FAN
@@ -217,7 +232,7 @@ public class GLES20Renderer implements Renderer {
 		//  GLES20.GL_TRIANGLES
 		// GLES20.GL_TRIANGLE_FAN
 		//  GLES20.GL_TRIANGLE_STRIP
-		GLES20.glDrawArrays(GLES20.GL_TRIANGLES , 0, 6);
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN , 0, 6);
 		GLES20.glDrawArrays(GLES20.GL_LINES, 6, 2); //
 		// 顶点坐标COMPONENT(每个坐标有两个分量) 偏移 6个
 		GLES20.glDrawArrays(GLES20.GL_POINTS, 8, 1);
@@ -227,6 +242,7 @@ public class GLES20Renderer implements Renderer {
 
 	final private int BYTES_PER_FLOAT = 4;
 	final private int POSITION_COMPONENT_COUNT = 2; // 没有z坐标 w坐标为1
+	//final private int POSITION_COMPONENT_COUNT = 3;  
 	final private int COLOR_COMPONENT_COUNT = 3;
 	final private int STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
 
@@ -234,13 +250,19 @@ public class GLES20Renderer implements Renderer {
 
 		float[] tableVerticesWithTriangles = {
 			// 两个三角形顶点坐标和三角形的颜色分量
-			0f, 0f,    1f, 1f, 1f, 
-			-0.5f, -0.5f,  0.7f, 0.7f, 0.7f, 
-			0.5f,-0.5f,   0.7f, 0.7f, 0.7f, 
-			0.5f, 0.5f,   0.7f, 0.7f, 0.7f, 
-			-0.5f,0.5f,  0.7f, 0.7f, 0.7f, 
-			-0.5f, -0.5f,   0.7f, 0.7f, 0.7f,
-
+			/*
+			 * Note: 
+				gl_postion 如果不对 z坐标 赋值  那么默认为1
+				也就是 gl_postion初始值 是 (1,1,1,1)  
+			 */
+			0f,		 0f,	/*0f,*/ 	1.0f, 1.0f, 1.0f, 
+			-0.5f, 	-0.5f,	/*0f,*/ 	0.5f, 0.5f, 0.5f, 
+			0.5f,	-0.5f,	/*0f,*/ 	0.5f, 0.5f, 0.5f, 
+			0.5f, 	0.5f,	/*0f,*/  	0.5f, 0.5f, 0.5f, 
+			-0.5f,	0.5f,	/*0f,*/ 	0.5f, 0.5f, 0.5f, 
+			-0.5f, 	-0.5f,	/*0f,*/   	0.5f, 0.5f, 0.5f,
+			
+		 
 			// 两条直线坐标和直线的颜色分量
 			-0.5f, 0f,   1f, 0f, 0f,
 			0.5f, 0f,  0f, 0f, 1f, // 平滑着色
@@ -267,11 +289,16 @@ public class GLES20Renderer implements Renderer {
 			+ "void main() {\n"
 			// 如果 u_normal 在程序中没有使用到 GPU编译后会移除改变量 
 			// GLES20.glGetUniformLocation(_rectangleProgram, "u_normal"); 返回 -1 
-			//+ "		gl_Position = a_Position * vec4(1,u_normal,1, 1);\n"
+			+ "		gl_Position = a_Position * vec4(1,u_normal,1, 1);\n"
 			+ "		vec4 temp = vec4(1,1,1,1) * vec4(1,u_normal,1, 1) ;\n"
-			+ "		mat4 temp1 = u_Matrix ;\n"
-			+ "		gl_Position = u_Matrix*a_Position ;\n" // 矩阵在前 向量在后
-			+ "		gl_PointSize = 20.0; \n"
+			//+ "		mat4 temp1 = u_Matrix ;\n"
+			/* Note:
+			 		gl_postion 初始值 是 (1,1,1,1)  
+				 	a_Position 如果只设置了两个值(x,y) 那么z和w都是1
+			*/
+			+ "		gl_Position = u_Matrix*vec4(a_Position.x,a_Position.y,0,1);\n" // 矩阵在前 向量在后
+			//+ "		gl_Position = a_Position ;\n" 
+			//+ "		gl_PointSize = 20.0; \n"
 			+ "		v_Color = a_Color;\n" // 平滑着色
 			+ "}\n";
 
