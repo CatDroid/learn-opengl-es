@@ -16,7 +16,7 @@ public class GLES20Renderer implements Renderer {
 	private int aPosHandle;
 	private int aColorHandle;
 	private int uNormal ;
-
+ 
 	FloatBuffer vertexColorData;
 	
 	private int mHeight ;
@@ -56,21 +56,113 @@ public class GLES20Renderer implements Renderer {
 		//	Log.e(TAG , "a_Color error ");
 		//}
 		
+		uMatrixLocation=GLES20.glGetUniformLocation(_rectangleProgram,"u_Matrix");
+		checkGlError("glGetUniformLocation u_Matrix");
+	    if (uMatrixLocation == -1) {
+            throw new RuntimeException("Could not get uniform uMatrixLocation  ");
+        }
 		uNormal = GLES20.glGetUniformLocation(_rectangleProgram, "u_normal");
 		checkGlError("glGetUniformLocation a_normal");
         if (uNormal == -1) {
-            throw new RuntimeException("Could not get uniform u_normal for tex_yuv");
+            throw new RuntimeException("Could not get uniform u_normal  ");
         }
 		Log.d(TAG, "aPosHandle = " + aPosHandle + " aColorHandle " + aColorHandle + " uNormal " + uNormal);
 	}
 
+	/*
+	 *	
+	 *	平移矩阵
+	 *	1			X_move
+	 *		1		Y_move
+	 *			1	Z_move
+	 *				1
+	 *	
+	 *	单位矩阵
+	 *	1
+	 *		1
+	 *			1
+	 *				1
+	 *	
+	 *	正交投影矩阵
+	 *	
+	 *	android.opengl.Matrix.orthoM(
+	 		float[] m,int mOffset,float left,float rigth,float bottom,float top,float near,float far)
 
-    
+			float[] m：目标数组，这个数组长度至少有16个元素，这样它才能存储正交投影矩阵
+			int mOffset：结果矩阵起始的偏移值
+			float left：X轴的最小范围 (范围都是归一化的!!)
+			float right：X轴的最大范围
+			float bottom：Y轴的最小范围
+			float top：Y轴的最大范围
+			float near：Z轴的最小范围
+			float far：Z轴的最大范围
+ 			2/(left-right)									(left+right)/(left-right)
+ 							2/(top-bottom)					(top+bottom)/(top-bottom)
+ 											-2/(far-near)	(far+near)/(far-near)	
+ 																1
+	 *
+	 *	
+	 */
+	private final float[] projectionMatrix=new float[16];
+	private int uMatrixLocation; // 正交投影
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		gl.glViewport(0, 0, width, height);
 		mHeight = height  ;
 		mWidth =  width;
 		Log.d(TAG , "surface change " + "h " +  mHeight + "w " + mWidth );
+
+		
+//		if(width>height){
+//			float aspectRatio = (float)width / (float)height ;
+//			android.opengl.Matrix.orthoM(projectionMatrix,0,
+//					-aspectRatio, aspectRatio, 
+//					-1f,1f,  		
+//					-1f,1f);
+//		}else{
+//			float aspectRatio = (float)height / (float)width ;
+//			android.opengl.Matrix.orthoM(projectionMatrix,0,
+//					-1f,1f,			
+//					-aspectRatio,aspectRatio,	
+//					-1f,1f);
+//		}
+		float[] temp=new float[16];
+		float[] modelMatrix=new float[16];
+		android.opengl.Matrix.setIdentityM(modelMatrix, 0); // 模型矩阵
+		android.opengl.Matrix.translateM(modelMatrix,0,0f,0.0f,-3f); // Z方向 移远-2.5
+		android.opengl.Matrix.rotateM(modelMatrix,0,-45f,1f,0f,0f);	 // 沿X轴 旋转-60 (右手坐标规则 x轴正方向指向眼睛 逆时针为负度数)
+		
+		perspectiveM(projectionMatrix, 45, (float) width / (float) height, 1f, 10f);// 视椎体从Z值为-1的位置开始，在Z值为-10的位置结束。
+		android.opengl.Matrix.multiplyMM(temp,0,projectionMatrix,0,modelMatrix,0);
+		System.arraycopy(temp, 0, projectionMatrix, 0, temp.length);
+		//System.arraycopy(modelMatrix, 0, projectionMatrix, 0, modelMatrix.length);
+
+	}
+	
+	public static void perspectiveM(float[] m,float yFovInDegress,float aspect,float n,float f){
+		
+		final float angleInRadians=(float)(yFovInDegress*Math.PI/180.0);
+		final float a=(float)(1.0/Math.tan(angleInRadians/2.0)); 
+		
+		m[0]=a/aspect;
+		m[1]=0f;
+		m[2]=0f;
+		m[3]=0f;
+
+
+		m[4]=0f;
+		m[5]=a;
+		m[6]=0f;
+		m[7]=0f;
+		
+		m[8]=0f;
+		m[9]=0f;
+		m[10]=-((f+n)/(f-n));
+		m[11]=-1f;
+		
+		m[12]=0f;
+		m[13]=0f;
+		m[14]=-((2f*f*n)/(f-n));
+		m[15]=0f;
 	}
 
     private void checkGlError(String op) {
@@ -110,6 +202,8 @@ public class GLES20Renderer implements Renderer {
 				GLES20.GL_FLOAT, false, STRIDE, vertexColorData); // 每两个颜色属性值 相差STRIDE个字节 
 		GLES20.glEnableVertexAttribArray(aColorHandle);
 	
+		// 只有attr需要enable  uniform不需要 !
+		GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, projectionMatrix, 0);
 		
 		float normal = (mWidth * 1.0f) / (mHeight*1.0f) ;
 		Log.d(TAG , "h " + mHeight + " w " + mWidth + " n " + normal );
@@ -166,11 +260,17 @@ public class GLES20Renderer implements Renderer {
 
 	private final String _rectangleVertexShaderCode = 
 			"attribute vec4 a_Position;\n"
+			+ "uniform mat4 u_Matrix;\n"
 			+ "uniform float u_normal;\n"
 			+ "attribute vec4 a_Color;\n"
 			+ "varying vec4 v_Color;\n"
 			+ "void main() {\n"
-			+ "		gl_Position = a_Position * vec4(1,u_normal,1, 1);\n"
+			// 如果 u_normal 在程序中没有使用到 GPU编译后会移除改变量 
+			// GLES20.glGetUniformLocation(_rectangleProgram, "u_normal"); 返回 -1 
+			//+ "		gl_Position = a_Position * vec4(1,u_normal,1, 1);\n"
+			+ "		vec4 temp = vec4(1,1,1,1) * vec4(1,u_normal,1, 1) ;\n"
+			+ "		mat4 temp1 = u_Matrix ;\n"
+			+ "		gl_Position = u_Matrix*a_Position ;\n" // 矩阵在前 向量在后
 			+ "		gl_PointSize = 20.0; \n"
 			+ "		v_Color = a_Color;\n" // 平滑着色
 			+ "}\n";
