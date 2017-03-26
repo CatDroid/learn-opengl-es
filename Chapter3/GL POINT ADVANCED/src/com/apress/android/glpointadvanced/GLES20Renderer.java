@@ -63,7 +63,7 @@ public class GLES20Renderer implements Renderer {
 	private final String _pointVertexShaderCode = 
 			"attribute vec4 aPosition;				\n"
 		+	"void main() {							\n"
-		+	" gl_PointSize = 15.0;					\n"
+		+	" gl_PointSize = 8.0;					\n"
 		+	" gl_Position = aPosition;				\n"
 		+	"}										\n";
 
