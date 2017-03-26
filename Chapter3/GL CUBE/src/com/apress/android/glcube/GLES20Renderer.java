@@ -3,11 +3,15 @@ package com.apress.android.glcube;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView.Renderer;
 import android.opengl.Matrix;
+import android.util.Log;
 
 public class GLES20Renderer implements Renderer {
 	private int _cubeProgram;
@@ -21,8 +25,50 @@ public class GLES20Renderer implements Renderer {
 	private float[] _ProjectionMatrix			= new float[16];
 	private float[] _MVPMatrix					= new float[16];
 
+	private final String TAG ="GLES20Renderer";
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1);
+		
+		
+		// Matrix.invertM 求逆矩阵Inverse Matric 如果矩阵不可逆 返回false  
+		float[] input = {
+			1,1,1,1,
+			0,0,0,0,
+			0,0,0,0,
+			0,0,0,0
+		};
+		float[] output = new float[16];
+		Log.d(TAG,"invertM " + Matrix.invertM(input, 0, output, 0) );
+		Log.d(TAG,"input = " + Arrays.toString(input));
+		Log.d(TAG,"output = " + Arrays.toString(output));
+		
+		// transposeM
+		Matrix.transposeM(output, 0, input, 0);
+		Log.d(TAG,"input = " + Arrays.toString(input));
+		Log.d(TAG,"output = " + Arrays.toString(output));
+	
+		
+		// 
+		float[] source = {
+				1,1,1,1,
+				0,0,0,0,
+				0,0,0,0,
+				0,0,0,0
+		};
+		float[] roateM = new float[16]; // 旋转矩阵
+		Matrix.setIdentityM(roateM, 0);
+		Matrix.rotateM(roateM,0,90,1,0,0); // 沿轴(1,0,0)旋转90度的旋转矩阵
+		Log.d(TAG,"roateM = " + Arrays.toString(roateM));
+		
+		float[] resultRotateM = new float[16]; 
+		Matrix.rotateM(resultRotateM,0, source, 0, 90,1,0,0); // 把矩阵  沿轴(1,0,0)旋转90度 得到结果矩阵
+		Log.d(TAG,"source = " + Arrays.toString(source));
+		Log.d(TAG,"resultRotateM = " + Arrays.toString(resultRotateM));
+		
+		float[] resultRotateM2 = new float[16]; 
+		Matrix.multiplyMM(resultRotateM2, 0, roateM, 0, source, 0);
+		Log.d(TAG,"source = " + Arrays.toString(source));
+		Log.d(TAG,"resultRotateM2 = " + Arrays.toString(resultRotateM2));
 	}
 
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -35,7 +81,13 @@ public class GLES20Renderer implements Renderer {
 		float fov = 0.75f; // 0.2 to 1.0
 		float size = (float) (zNear * Math.tan(fov / 2));
 		Matrix.setLookAtM(_ViewMatrix, 0, -13, 5, 10, 0, 0, 0, 0, 1, 0);
-		Matrix.frustumM(_ProjectionMatrix, 0, -size, size, -size / ratio, size / ratio, zNear, zFar);
+		//Matrix.setIdentityM(_ViewMatrix, 0);
+		//Matrix.frustumM(_ProjectionMatrix, 0, -size , size , -size * ratio , size* ratio , zNear, zFar);
+		
+		// 下面两个是一样的
+		Matrix.frustumM(_ProjectionMatrix, 0, -size * ratio, size * ratio, -size , size , zNear, zFar);
+		//Matrix.perspectiveM(_ProjectionMatrix, 0, (float)(fov*180/Math.PI) , ratio, zNear, zFar);
+		
 		Matrix.multiplyMM(_MVPMatrix, 0, _ProjectionMatrix, 0, _ViewMatrix, 0);
 
 		int cubeVertexShader = loadShader(GLES20.GL_VERTEX_SHADER, _cubeVertexShaderCode);
